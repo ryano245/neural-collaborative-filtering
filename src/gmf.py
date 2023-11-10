@@ -17,6 +17,9 @@ class GMF(torch.nn.Module):
         self.logistic = torch.nn.Sigmoid()
 
     def forward(self, user_indices, item_indices):
+        
+        # print(user_indices, item_indices)
+        
         user_embedding = self.embedding_user(user_indices)
         item_embedding = self.embedding_item(item_indices)
         element_product = torch.mul(user_embedding, item_embedding)

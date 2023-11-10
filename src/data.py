@@ -68,7 +68,6 @@ class SampleGenerator(object):
         train = ratings[ratings['rank_latest'] > 1]
 
         test = test[test["userId"].isin(train["userId"].unique())]
-        test = test[test["itemId"].isin(train["itemId"].unique())]
 
         print(train['userId'].nunique())
         print(train['itemId'].nunique())
@@ -79,15 +78,19 @@ class SampleGenerator(object):
         assert train['userId'].nunique() == test['userId'].nunique()
         return train[['userId', 'itemId', 'rating']], test[['userId', 'itemId', 'rating']]
 
-    def _sample_negative(self, ratings):
+    def _sample_negative(self, ratings): 
         """return all negative items & 100 sampled negative items"""
         interact_status = ratings.groupby('userId')['itemId'].apply(set).reset_index().rename(
             columns={'itemId': 'interacted_items'})
+        print(interact_status.shape, interact_status.head())
+        print("-------")
         interact_status['negative_items'] = interact_status['interacted_items'].apply(lambda x: self.item_pool - x)
+        print(interact_status.shape, interact_status.head())
+        print('--------')
         # interact_status['negative_samples'] = interact_status['negative_items'].apply(lambda x: random.sample(x, 99))
 
-        # Assuming interact_status['negative_items'] is a column containing sets of negative items
-        interact_status['negative_samples'] = interact_status['negative_items'].apply(lambda x: random.sample(x, min(99, len(x))))
+        interact_status['negative_samples'] = interact_status['negative_items'].apply(lambda x: random.sample(x, 20))
+        print(interact_status.shape, interact_status.head())
 
         return interact_status[['userId', 'negative_items', 'negative_samples']]
 
