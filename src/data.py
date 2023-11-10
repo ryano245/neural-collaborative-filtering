@@ -66,6 +66,16 @@ class SampleGenerator(object):
         ratings['rank_latest'] = ratings.groupby(['userId'])['timestamp'].rank(method='first', ascending=False)
         test = ratings[ratings['rank_latest'] == 1]
         train = ratings[ratings['rank_latest'] > 1]
+
+        test = test[test["userId"].isin(train["userId"].unique())]
+        test = test[test["itemId"].isin(train["itemId"].unique())]
+
+        print(train['userId'].nunique())
+        print(train['itemId'].nunique())
+        print('----')
+        print(test['userId'].nunique())
+        print(test['itemId'].nunique())
+
         assert train['userId'].nunique() == test['userId'].nunique()
         return train[['userId', 'itemId', 'rating']], test[['userId', 'itemId', 'rating']]
 
@@ -74,7 +84,11 @@ class SampleGenerator(object):
         interact_status = ratings.groupby('userId')['itemId'].apply(set).reset_index().rename(
             columns={'itemId': 'interacted_items'})
         interact_status['negative_items'] = interact_status['interacted_items'].apply(lambda x: self.item_pool - x)
-        interact_status['negative_samples'] = interact_status['negative_items'].apply(lambda x: random.sample(x, 99))
+        # interact_status['negative_samples'] = interact_status['negative_items'].apply(lambda x: random.sample(x, 99))
+
+        # Assuming interact_status['negative_items'] is a column containing sets of negative items
+        interact_status['negative_samples'] = interact_status['negative_items'].apply(lambda x: random.sample(x, min(99, len(x))))
+
         return interact_status[['userId', 'negative_items', 'negative_samples']]
 
     def instance_a_train_loader(self, num_negatives, batch_size):
